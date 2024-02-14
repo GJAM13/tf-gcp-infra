@@ -16,6 +16,22 @@ app.post('/v1/user', (req, res) => {
   });
 });
 
+app.get('/v1/user/:id', (req, res) => {
+  const { id } = req.params;
+  const query = 'SELECT * FROM users WHERE id = ?';
+  db.query(query, [id], (err, results) => {
+    if (err) {
+      res.status(500).send({ message: 'Error fetching user', error: err });
+      return;
+    }
+    if (results.length === 0) {
+      res.status(404).send({ message: 'User not found' });
+      return;
+    }
+    res.status(200).send({ user: results[0] });
+  });
+});
+
 app.put('/v1/user/:id', (req, res) => {
   const { id } = req.params;
   const { name, email } = req.body;
