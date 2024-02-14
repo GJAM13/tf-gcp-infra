@@ -37,7 +37,7 @@ jobs:
 
     - name: Run migrations
       run: |
-        node -e "require('./db');"
+        node migrate.js
 
     - name: Run integration tests
       run: npm test
