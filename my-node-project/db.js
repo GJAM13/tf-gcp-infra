@@ -3,8 +3,7 @@ const mysql = require('mysql');
 const connection = mysql.createConnection({
   host: process.env.DB_HOST || 'localhost',
   user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || '',
-  database: process.env.DB_NAME || 'web_app'
+  database: process.env.DB_NAME || 'mydb'
 });
 
 connection.connect((err) => {
@@ -21,13 +20,13 @@ connection.connect((err) => {
       email VARCHAR(255)
     );
   `;
+
   connection.query(createTableQuery, (err) => {
     if (err) {
       console.error('Error creating users table:', err);
       return;
     }
     console.log('Users table is ready');
+    connection.end(); // Close the connection after creating the table
   });
 });
-
-module.exports = connection;
