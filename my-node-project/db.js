@@ -3,7 +3,7 @@ const mysql = require('mysql');
 const connection = mysql.createConnection({
   host: process.env.DB_HOST || 'localhost',
   user: process.env.DB_USER || 'root',
-  database: process.env.DB_NAME || 'mydb'
+  database: process.env.DB_NAME || 'web_app'
 });
 
 connection.connect((err) => {
