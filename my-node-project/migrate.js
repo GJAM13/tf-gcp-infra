@@ -11,8 +11,8 @@ const createTableQuery = `
 db.query(createTableQuery, (err) => {
   if (err) {
     console.error('Error creating users table:', err);
-    process.exit(1); // Exit with an error code
+    process.exit(1);
   }
   console.log('Users table is ready');
-  db.end(); // Close the database connection
+  db.end();
 });
