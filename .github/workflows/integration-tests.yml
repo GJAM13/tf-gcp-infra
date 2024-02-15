@@ -1,44 +1,55 @@
-name: 'Integration Tests'
+name: Integration Tests
 
 on:
+  push:
+    branches: [ main ]
   pull_request:
-    branches:
-      - main
+    branches: [ main ]
 
 jobs:
-  integration-tests:
-    name: 'Run Integration Tests'
+  test:
     runs-on: ubuntu-latest
+
     services:
       mysql:
         image: mysql:5.7
         env:
-          MYSQL_ROOT_PASSWORD: root
+          MYSQL_ROOT_PASSWORD: rootpassword  # Set a password for the root user
+          MYSQL_DATABASE: web_app
         ports:
           - 3306:3306
-      postgres:
-        image: postgres:12
-        env:
-          POSTGRES_PASSWORD: postgres
-        ports:
-          - 5432:5432
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -prootpassword"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+    - uses: actions/checkout@v2
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v2
-        with:
-          node-version: '14'
+    - name: Set up Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '14'
 
-      - name: Install dependencies
-        run: npm install
+    - name: Install dependencies
+      run: npm install
 
-      - name: Run integration tests
-        run: npm test
-        env:
-          DB_HOST: localhost
-          DB_USER: root
-          DB_PASSWORD: root
-          DB_NAME: testdb
+    - name: Run migrations
+      run: |
+        node -e "require('./db');"
+        
+    - name: Configure MySQL
+      run: |
+        sudo docker exec mysql mysql -uroot -prootpassword -e "ALTER USER 'root'@'%' IDENTIFIED WITH mysql_native_password BY 'rootpassword';"
+        sudo docker exec mysql mysql -uroot -prootpassword -e "FLUSH PRIVILEGES;"
+    
+        
+
+    - name: Run integration tests
+      run: npm test
+      env:
+        DB_HOST: localhost
+        DB_USER: root
+        DB_PASSWORD: rootpassword  # Pass the root password to the test environment
+        DB_NAME: web_app
