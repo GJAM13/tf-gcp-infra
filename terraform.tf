@@ -9,10 +9,14 @@ terraform {
   required_version = ">= 0.12"
 }
 
+variable "zone" {
+  description = "The zone to deploy resources in"
+  default     = "us-central1-a"
+}
+
 provider "google" {
-  credentials = file(var.credentials_file)
-  project     = var.project_id
-  region      = var.region
+  project = "japangor"
+  region  = "us-central1"
 }
 
 resource "google_compute_network" "vpc" {
@@ -40,4 +44,52 @@ resource "google_compute_route" "webapp_route" {
   dest_range       = "0.0.0.0/0"
   network          = google_compute_network.vpc.id
   next_hop_gateway = "default-internet-gateway"
+}
+
+resource "google_compute_firewall" "allow_ssh" {
+  name    = "allow-app-traffic"
+  network = google_compute_network.vpc.name
+
+  allow {
+    protocol = "tcp"
+    ports    = ["3000"]
+  }
+
+  source_ranges = ["0.0.0.0/0"]
+}
+
+resource "google_compute_instance" "webapp_instance" {
+  name         = "webapp-instance"
+  machine_type = "e2-medium"
+  zone         = var.zone
+
+  boot_disk {
+    initialize_params {
+      image = "projects/japangor/global/images/packer-1708936713" # Update this with the correct image name
+    }
+  }
+
+  network_interface {
+    network    = google_compute_network.vpc.name
+    subnetwork = google_compute_subnetwork.webapp_subnet.name
+
+    access_config {
+      // Assigns an external IP address
+    }
+  }
+
+  metadata = {
+    ssh-keys = "jaygo:${file("google_compute_engine.pub")}"
+  }
+
+
+  service_account {
+    scopes = ["https://www.googleapis.com/auth/cloud-platform"]
+  }
+
+  tags = ["http-server", "https-server"]
+}
+
+output "webapp_instance_external_ip" {
+  value = google_compute_instance.webapp_instance.network_interface[0].access_config[0].nat_ip
 }

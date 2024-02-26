@@ -38,3 +38,4 @@ credentials.json
 terraform.tfstate
 terraform.tfstate.backup
 key.json
+nodemodules/

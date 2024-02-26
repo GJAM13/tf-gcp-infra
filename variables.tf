@@ -3,9 +3,9 @@ variable "credentials_file" {
 }
 
 variable "project_id" {
-  description = "The GCP project ID"
+  description = "japangor"
 }
 
 variable "region" {
-  description = "The GCP region"
+  description = "us-central1-a"
 }
